@@ -235,8 +235,8 @@ test_generator <- flow_images_from_directory(
 
 model %>% evaluate_generator(test_generator, steps = 50)
 
-# loss = .417
-# acc = 0.918
+# loss = .282
+# acc = 0.945
 ```
 
 
@@ -297,14 +297,14 @@ test_generator_2 <- flow_images_from_directory(
 
 model %>% evaluate_generator(test_generator_2, steps = 50)
 
-# loss = 0.354
-# acc = 0.837
+# loss = 0.272
+# acc = 0.892
 ```
 
 
 ### Output Analysis
 
-The standard neural net for my 2 species sample returned a higher accuracy than for the convolutional neural net for my 2 species sample, but the loss rate was lower for the convolutional neural net. I would choose to use the standard convolutional neural net for this analysis.
+The standard neural net for my 2 species sample returned a higher accuracy (accuracy = 0.9459459) than for the convolutional neural net for my 2 species sample (accuracy = 0.8918919), but the loss rate was lower for the convolutional neural net (0.2727629) than for the standard neural net (0.2820483) by a small margin. I would choose to use the standard neural net for this analysis.
 
 ## Model 3: Multi-class Classification - Neural Net
 
@@ -334,35 +334,36 @@ for(i in 1:length(species_10)){
 
 ```{r}
 # All images will be rescaled by 1/255
-train_datagen <- image_data_generator(rescale = 1/255)
-validation_datagen <- image_data_generator(rescale = 1/255)
-test_datagen <- image_data_generator(rescale = 1/255)
-train_generator <- flow_images_from_directory(
+train_datagen_10 <- image_data_generator(rescale = 1/255)
+validation_datagen_10 <- image_data_generator(rescale = 1/255)
+test_datagen_10 <- image_data_generator(rescale = 1/255)
+
+train_generator_10 <- flow_images_from_directory(
   # This is the target directory
   train_10_dir,
   # This is the data generator
-  train_datagen,
+  train_datagen_10,
   # All images will be resized to 150x150
   target_size = c(150, 150),
   batch_size = 5,
   # Since we use binary_crossentropy loss, we need binary labels
   class_mode = "categorical")
 
-validation_generator <- flow_images_from_directory(
+validation_generator_10 <- flow_images_from_directory(
   validation_10_dir,
-  validation_datagen,
+  validation_datagen_10,
   target_size = c(150, 150),
   batch_size = 5,
   class_mode = "categorical")
 
 test_generator <- flow_images_from_directory(
   test_10_dir,
-  test_datagen,
+  test_datagen_10,
   target_size = c(150, 150),
   batch_size = 5,
   class_mode = "categorical")
 
-batch <- generator_next(train_generator)
+batch <- generator_next(train_generator_10)
 str(batch)
 ```
 
@@ -388,11 +389,11 @@ model %>% compile(
 
 ```{r}
 history_3 <- model %>% fit(
-  train_generator,
+  train_generator_10,
   steps_per_epoch = 5,
   epochs = 30,
-  validation_data = validation_generator,
-  validation_steps = 5)
+  validation_data = validation_generator_10,
+  validation_steps = 10)
 
 plot(history_3)
 ```
@@ -436,24 +437,24 @@ model_4 <- keras_model_sequential() %>%
   layer_flatten() %>% 
   layer_dropout(rate = 0.5) %>% 
   layer_dense(units = 512, activation = "relu") %>% 
-  layer_dense(units = 1, activation = "sigmoid")  
+  layer_dense(units = 10, activation = "sigmoid")  
   
-#model_4 %>% compile(
-#  loss = "categorical_crossentropy",
-#  optimizer = optimizer_rmsprop(lr = 1e-4),
-#  metrics = c("acc"))
-
 model_4 %>% compile(
-  optimizer = "rmsprop",
-  loss      = "categorical_crossentropy",
-  metrics   = c("accuracy"))
+ loss = "categorical_crossentropy",
+ optimizer = optimizer_rmsprop(lr = 1e-4),
+ metrics = c("acc"))
+
+# model_4 %>% compile(
+#   optimizer = "rmsprop",
+#   loss      = "categorical_crossentropy",
+#   metrics   = c("accuracy"))
 
 history_4 <- model %>% fit(
-    train_generator,
+    train_generator_10,
     steps_per_epoch = 5,
     epochs = 30,
-    validation_data = validation_generator,
-    validation_steps = 5)
+    validation_data = validation_generator_10,
+    validation_steps = 10)
 
 plot(history_4)
 ```
@@ -478,6 +479,7 @@ model_4 %>% evaluate_generator(test_generator_4, steps = 24)
 
 ### Output Analysis
 
+For my sample of 10 species, a standard convolutional neural net gave an accuracy of 0.900000 while the convolutional neural net gave an accuracy value of 0.1078838, which is much lower. The standard neural net gave a loss value of 2.153912 while the convolutional neural net gave a loss value of 2.3019412. Based on these results, I would proceed with using the standard neural net.
 
 
 
